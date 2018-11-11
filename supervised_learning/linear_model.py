@@ -10,25 +10,29 @@ import numpy as np
 import abc
 import logging
 import math
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, r2_score, accuracy_score
+from sklearn.metrics import log_loss
 
 
 class L1Regularizer(object):
     def __call__(self, w: np.ndarray):
-        return np.linalg.norm(w, ord=1)
+        n_features = w.shape
+        return np.linalg.norm(w, ord=1) / n_features
 
     @staticmethod
     def grad(w: np.ndarray):
-        return np.sign(w)
+        n_features = w.shape
+        return np.sign(w) / n_features
 
 
 class L2Regularizer(object):
     def __call__(self, w: np.ndarray):
-        return 0.5 * np.linalg.norm(w, ord=2)
+        n_features = w.shape
+        return 0.5 * np.linalg.norm(w, ord=2) / n_features
 
     @staticmethod
     def grad(w: np.ndarray):
-        return w
+        return np.mean(w)
 
 
 class L1L2Regularizer(object):
@@ -50,6 +54,26 @@ class MeanSquaredError(object):
     def grad(self, X: np.ndarray, w: np.ndarray, y: np.ndarray):
         n_samples = X.shape[0]
         return 1 / n_samples * 2 * np.dot(X.T, np.dot(X, w) - y)
+
+
+class CrossEntropy(object):
+    @staticmethod
+    def sigmoid(X: np.ndarray, w: np.ndarray) -> np.ndarray:
+        value = 1 / (1 + np.power(1/math.e, np.dot(X, w)))
+        return value
+
+    def __call__(self, X: np.ndarray, w: np.ndarray, y: np.ndarray) -> float:
+        y_true = y
+        predict_proba_1 = np.array([CrossEntropy.sigmoid(X, w)]).T
+        predict_proba_0 = 1 - predict_proba_1
+        y_pred = np.concatenate((predict_proba_0, predict_proba_1), axis=1)
+        cross_entropy = log_loss(y_true, y_pred)
+        logging.debug("cross entropy is {}".format(cross_entropy))
+        return cross_entropy
+
+    def grad(self, X: np.ndarray, w: np.ndarray, y: np.ndarray) -> np.ndarray:
+        grad = np.dot(CrossEntropy.sigmoid(X, w) - y, X)
+        return grad
 
 
 class BaseRegression(metaclass=abc.ABCMeta):
@@ -148,3 +172,20 @@ class Lasso(ElasticNet):
 class Ridge(ElasticNet):
     def __init__(self, alpha=1.0, max_iter=1000):
         super().__init__(alpha, 0, max_iter)
+
+
+class LogisticRegression(BaseRegression):
+    def __init__(self, penalty="l2", C=0, max_iter=100):
+        super().__init__(alpha=C, l1_ratio=C, penalty=penalty, max_iter=max_iter)
+
+    def _set_cost_function(self):
+        self._cost_func = CrossEntropy()
+
+    def predict(self, X: np.ndarray):
+        X_test = self._augment_feature_matrix(X)
+        predict_proba = CrossEntropy.sigmoid(X_test, self._augmented_coef)
+        y_pred = (predict_proba > 0.5).astype(int, copy=False)
+        return y_pred
+
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        return accuracy_score(y, self.predict(X))
