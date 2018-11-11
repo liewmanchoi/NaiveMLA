@@ -7,5 +7,10 @@
 # __file__ = __init__.py.py
 
 from .KNearestNeighbor import KNN
+from .linear_model import Ridge, Lasso, ElasticNet, LogisticRegression
 
-__all__ = ['KNN']
+__all__ = ['KNN',
+           'Ridge',
+           'Lasso',
+           'ElasticNet',
+           'LogisticRegression']
