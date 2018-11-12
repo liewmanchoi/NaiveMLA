@@ -8,9 +8,11 @@
 
 from .KNearestNeighbor import KNN
 from .linear_model import Ridge, Lasso, ElasticNet, LogisticRegression
+from .NaiveBayes import GaussianNB
 
 __all__ = ['KNN',
            'Ridge',
            'Lasso',
            'ElasticNet',
-           'LogisticRegression']
+           'LogisticRegression',
+           'GaussianNB']
