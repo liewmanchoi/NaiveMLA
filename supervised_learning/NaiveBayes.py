@@ -7,6 +7,7 @@
 # __file__ = NaiveBayes.py
 
 import numpy as np
+from sklearn.metrics import accuracy_score
 
 
 class GaussianNB(object):
@@ -55,3 +56,6 @@ class GaussianNB(object):
             posteriors.append(posterior)
 
         return self._classes[np.argmax(posteriors)]
+
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        return accuracy_score(y, self.predict(X))
