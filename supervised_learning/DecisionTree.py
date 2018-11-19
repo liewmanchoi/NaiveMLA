@@ -6,8 +6,8 @@
 # __time__ = 2018/11/17 10:18
 # __file__ = DecisionTree.py
 
-from typing import Callable
 import numpy as np
+import abc
 
 
 class DecisionTreeNode(object):
@@ -27,8 +27,6 @@ class BaseDecisionTree(object):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_impurity_split = min_impurity_split
-        self._impurity_func: Callable = None
-        self._leaf_value_func: Callable = None
         self._n_classes: int = None
         self._n_features: int = None
         self._classes: np.ndarray = None
@@ -49,16 +47,26 @@ class BaseDecisionTree(object):
         best_feature_idx: int = None
         best_cut_off_feature = None
 
-        if n_samples >= self.min_samples_split and depth <= self.max_depth:
-            # 选择最优属性和最优切分点
+        # 如果可分样本数或者深度满足要求，则继续下一个步骤
+        if n_samples >= self.min_samples_split and depth < self.max_depth:
+            # 双重循环，选择最优属性和最优切分点
             for feature_idx in range(n_features):
                 feature_array = X[:, feature_idx]
                 unique_feauture_array = np.unique(feature_array)
+
+                # case1: 所有样本在所有属性上取值相同，无法划分
+                if unique_feauture_array.size == 1:
+                    return DecisionTreeNode(leaf_output_value=self._leaf_value_func(y))
 
                 for feature in unique_feauture_array:
                     mask: np.ndarray = (feature_array == feature)
                     y_of_feature = y[mask]
                     y_out_of_feature = y[np.logical_not(mask)]
+
+                    # case2: 当前结点包含的样本全部属于同一类别
+                    # case3: 当前结点包含的样本集合为空
+                    if len(y_of_feature) == 0 or len(y_out_of_feature) == 0:
+                        return DecisionTreeNode(leaf_output_value=self._leaf_value_func(y))
 
                     impurity = self._impurity_func(y_of_feature, y_out_of_feature)
 
@@ -67,29 +75,45 @@ class BaseDecisionTree(object):
                         best_feature_idx = feature_idx
                         best_cut_off_feature = feature
 
-        if min_impurity > self.min_impurity_split:
-            X_left, X_right, y_left, y_right = self._split_dataset(X, y, best_feature_idx, best_cut_off_feature)
-            left_child = self._generate_tree(X_left, y_left, depth+1)
-            right_child = self._generate_tree(X_right, y_right, depth+1)
-            root = DecisionTreeNode(feature_idx=best_feature_idx, cut_off_point=best_cut_off_feature,
-                                    left_child=left_child, right_child=right_child)
-            return root
+            # 如果最小的不纯度高于预定阈值，则可以进行特征切分
+            if self.min_impurity_split < min_impurity < float("inf"):
+                X_left, X_right, y_left, y_right = self._split_dataset(X, y, best_feature_idx, best_cut_off_feature)
+                left_child = self._generate_tree(X_left, y_left, depth+1)
+                right_child = self._generate_tree(X_right, y_right, depth+1)
+                root = DecisionTreeNode(feature_idx=best_feature_idx, cut_off_point=best_cut_off_feature,
+                                        left_child=left_child, right_child=right_child)
+                return root
 
-        leaf_output_value = self._leaf_value_func(y)
-        return DecisionTreeNode(leaf_output_value=leaf_output_value)
+        return DecisionTreeNode(leaf_output_value=self._leaf_value_func(y))
 
     @staticmethod
-    def _split_dataset(self, X: np.ndarray, y: np.ndarray, feature_idx:int, cut_off_point):
+    def _split_dataset(X: np.ndarray, y: np.ndarray, feature_idx: int, cut_off_point):
         n_features = X.shape[1]
         exclude_mask = np.delete(np.arange(n_features), feature_idx)
         X_exclude = X.take(exclude_mask, axis=1)
         mask = X[:, feature_idx] == cut_off_point
-        X_left = X[mask]
-        X_right = X[np.logical_not(mask)]
+        X_left = X_exclude[mask]
+        X_right = X_exclude[np.logical_not(mask)]
         y_left = y[mask]
         y_right = y[np.logical_not(mask)]
 
         return X_left, X_right, y_left, y_right
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        y_pred = np.array([self._predict_value(sample) for sample in X])
+        return y_pred
+
+    @abc.abstractmethod
+    def _predict_value(self, x: np.ndarray):
+        pass
+
+    @abc.abstractmethod
+    def _impurity_func(self, y_positive: np.ndarray, y_negative: np.ndarray) -> float:
+        pass
+
+    @abc.abstractmethod
+    def _leaf_value_func(self, y: np.ndarray):
+        pass
 
     @property
     def n_classes_(self) -> int:
@@ -102,4 +126,3 @@ class BaseDecisionTree(object):
     @property
     def classes_(self) -> np.ndarray:
         return self._classes
-
