@@ -8,6 +8,7 @@
 
 import numpy as np
 import abc
+import math
 
 
 class DecisionTreeNode(object):
@@ -126,3 +127,41 @@ class BaseDecisionTree(object):
     @property
     def classes_(self) -> np.ndarray:
         return self._classes
+
+
+class DecisionTreeClassifier(BaseDecisionTree):
+    def __init__(self, max_depth: int = float("inf"), min_samples_split: int = 2,
+                 min_impurity_split: float = 1e-7):
+        super().__init__(max_depth, min_samples_split, min_impurity_split)
+
+    # 计算gini_index
+    def _impurity_func(self, y_positive: np.ndarray, y_negative: np.ndarray) -> float:
+        len1 = y_positive.size
+        len2 = y_negative.size
+        len_sum = len1 + len2
+        return (len1 * self._gini_index(y_positive) + len2 * self._gini_index(y_negative)) / len_sum
+
+    @staticmethod
+    def _gini_index(y: np.ndarray) -> float:
+        y_unique = np.unique(y)
+        sum_of_power_of_p = 0.0
+        for label in y_unique:
+            p = (label == y).size / y.size
+            sum_of_power_of_p += math.pow(p, 2)
+
+        gini_index = 1 - sum_of_power_of_p
+        return gini_index
+
+    def _leaf_value_func(self, y: np.ndarray) -> int:
+        return int(np.argmax(np.bincount(y)))
+
+    def _predict_value(self, x: np.ndarray) -> int:
+        node: 'DecisionTreeNode' = self.root
+        while node.leaf_output_value is not None:
+            feature_value = x[node.feature_idx]
+            if feature_value == node.cut_off_point:
+                node = node.left_child
+            else:
+                node = node.right_child
+
+        return node.leaf_output_value
