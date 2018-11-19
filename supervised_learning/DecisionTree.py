@@ -26,8 +26,7 @@ class DecisionTreeNode(object):
 
 
 class BaseDecisionTree(object):
-    def __init__(self, max_depth: int = float("inf"), min_samples_split: int = 2,
-                 min_impurity_split: float = -float("inf")):
+    def __init__(self, max_depth, min_samples_split, min_impurity_split):
         self.root: 'DecisionTreeNode' = None
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
