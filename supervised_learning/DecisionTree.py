@@ -73,7 +73,7 @@ class BaseDecisionTree(object):
 
                 impurity = self._impurity_func(y_of_feature, y_out_of_feature)
 
-                if impurity < self.min_impurity_split:
+                if impurity < self.min_impurity_split or impurity == 0:
                     return DecisionTreeNode(leaf_output_value=self._leaf_value_func(y))
 
                 if impurity < min_impurity:
