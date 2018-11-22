@@ -10,10 +10,12 @@ import numpy as np
 import abc
 from typing import List
 from supervised_learning.DecisionTree import BaseDecisionTree
+from supervised_learning import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
 
 
 class BaseRandomForest(object):
-    def __init__(self, n_estimators:int, max_depth:int, min_samples_split,
+    def __init__(self, n_estimators: int, max_depth: int, min_samples_split,
                  min_impurity_split: float, max_features: int):
         self.n_estimators = n_estimators
         self.max_depth = max_depth
@@ -67,7 +69,41 @@ class BaseRandomForest(object):
 
         return y_pred
 
-
     @abc.abstractmethod
     def _get_ensemble_value(self, values: np.ndarray):
         pass
+
+
+class RandomForestClassifier(BaseRandomForest):
+    def __init__(self, n_estimators: int=100, max_depth: int=float("inf"), min_samples_split: int = 2,
+                 min_impurity_split: float=1e-7, max_features: int=None):
+        super().__init__(n_estimators=n_estimators, max_depth=max_depth, min_samples_split=min_samples_split,
+                         min_impurity_split=min_impurity_split, max_features=max_features)
+        self._classes: np.ndarray = None
+        self._n_classes: int = None
+
+    @property
+    def classes_(self) -> np.ndarray:
+        return self._classes
+
+    @property
+    def n_classes_(self) -> int:
+        return self._n_classes
+
+    def _init_estimators(self):
+        for _ in range(self.n_estimators):
+            self._estimators.append(
+                DecisionTreeClassifier(max_depth=self.max_depth, min_samples_split=self.min_samples_split,
+                                       min_impurity_split=self.min_impurity_split))
+
+    def fit(self, X: np.ndarray, y: np.ndarray):
+        if self.max_features is None:
+            self.max_features = int(np.sqrt(X.shape[1]))
+
+        return super().fit(X, y)
+
+    def _get_ensemble_value(self, values: np.ndarray) -> int:
+        return int(np.argmax(np.bincount(values)))
+
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        return accuracy_score(y, self.predict(X))
