@@ -15,7 +15,7 @@ from sklearn.metrics import accuracy_score
 
 
 class BaseRandomForest(object):
-    def __init__(self, n_estimators: int, max_depth: int, min_samples_split,
+    def __init__(self, n_estimators: int, max_depth: int, min_samples_split: int,
                  min_impurity_split: float, max_features: int):
         self.n_estimators = n_estimators
         self.max_depth = max_depth
