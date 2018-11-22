@@ -50,14 +50,14 @@ class BaseRandomForest(object):
 
             # generate subset
             X_subset = X[np.ix_(bootstrap_idx, feature_idx)]
-            y_subset = y[feature_idx]
+            y_subset = y[bootstrap_idx]
             # fit each estimator
             estimator.fit(X_subset, y_subset)
 
         return self
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        y_preds = np.empty(shape=(X.shape[0], self.n_estimators))
+        y_preds = np.empty(shape=(X.shape[0], self.n_estimators), dtype=np.int64)
 
         for idx, estimator in enumerate(self._estimators):
             feature_idx = self._in_bag_features[idx]
