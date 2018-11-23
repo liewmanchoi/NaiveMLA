@@ -12,6 +12,7 @@ from .NaiveBayes import GaussianNB
 from .DecisionTree import DecisionTreeClassifier
 from .DecisionTree import DecisionTreeRegressor
 from .RandomForest import RandomForestClassifier
+from .RandomForest import RandomForestRegressor
 
 __all__ = ['KNN',
            'Ridge',
@@ -21,4 +22,5 @@ __all__ = ['KNN',
            'GaussianNB',
            'DecisionTreeClassifier',
            'RandomForestClassifier',
-           'DecisionTreeRegressor']
+           'DecisionTreeRegressor',
+           'RandomForestRegressor']
