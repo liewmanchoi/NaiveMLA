@@ -10,6 +10,7 @@ from .KNearestNeighbor import KNN
 from .linear_model import Ridge, Lasso, ElasticNet, LogisticRegression
 from .NaiveBayes import GaussianNB
 from .DecisionTree import DecisionTreeClassifier
+from .DecisionTree import DecisionTreeRegressor
 from .RandomForest import RandomForestClassifier
 
 __all__ = ['KNN',
@@ -19,4 +20,5 @@ __all__ = ['KNN',
            'LogisticRegression',
            'GaussianNB',
            'DecisionTreeClassifier',
-           'RandomForestClassifier']
+           'RandomForestClassifier',
+           'DecisionTreeRegressor']
