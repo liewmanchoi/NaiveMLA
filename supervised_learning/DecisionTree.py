@@ -11,6 +11,7 @@ import abc
 import math
 from utils.data import is_discrete_target
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import r2_score
 
 
 class DecisionTreeNode(object):
@@ -26,28 +27,21 @@ class DecisionTreeNode(object):
 
 
 class BaseDecisionTree(object):
-    def __init__(self, max_depth, min_samples_split, min_impurity_split):
+    def __init__(self, max_depth: int, min_samples_split: int, min_impurity_split: float):
         self.root: 'DecisionTreeNode' = None
-        self.max_depth = max_depth
-        self.min_samples_split = min_samples_split
-        self.min_impurity_split = min_impurity_split
-        self._n_classes: int = None
+        self.max_depth: int = max_depth
+        self.min_samples_split: int = min_samples_split
+        self.min_impurity_split: float = min_impurity_split
         self._n_features: int = None
-        self._classes: np.ndarray = None
 
+    @abc.abstractmethod
     def fit(self, X: np.ndarray, y: np.ndarray) -> 'BaseDecisionTree':
-        n_samples, n_features = X.shape
-        self._n_features = n_features
-        self._classes = np.unique(y)
-        self._n_classes = self._classes.size
-
-        self.root = self._generate_tree(X, y, 0)
-        return self
+        pass
 
     def _generate_tree(self, X: np.ndarray, y: np.ndarray, depth: int = 0) -> 'DecisionTreeNode':
         n_samples, n_features = X.shape
 
-        if n_samples < self.min_samples_split or depth >= self.max_depth:
+        if n_samples < self.min_samples_split or depth >= self.max_depth or np.unique(y).size == 1:
             return DecisionTreeNode(leaf_output_value=self._leaf_value_func(y))
 
         min_impurity: float = float('inf')
@@ -73,7 +67,7 @@ class BaseDecisionTree(object):
 
                 impurity = self._impurity_func(y_of_feature, y_out_of_feature)
 
-                if impurity < self.min_impurity_split or impurity == 0:
+                if impurity < self.min_impurity_split:
                     return DecisionTreeNode(leaf_output_value=self._leaf_value_func(y))
 
                 if impurity < min_impurity:
@@ -123,22 +117,16 @@ class BaseDecisionTree(object):
         pass
 
     @property
-    def n_classes_(self) -> int:
-        return self._n_classes
-
-    @property
     def n_features_(self) -> int:
         return self._n_features
-
-    @property
-    def classes_(self) -> np.ndarray:
-        return self._classes
 
 
 class DecisionTreeClassifier(BaseDecisionTree):
     def __init__(self, max_depth: int = float("inf"), min_samples_split: int = 2,
-                 min_impurity_split: float = 1e-7):
+                 min_impurity_split: float = 0.0):
         super().__init__(max_depth, min_samples_split, min_impurity_split)
+        self._n_classes: int = None
+        self._classes: np.ndarray = None
 
     # 计算gini_index
     def _impurity_func(self, y_positive: np.ndarray, y_negative: np.ndarray) -> float:
@@ -182,5 +170,68 @@ class DecisionTreeClassifier(BaseDecisionTree):
 
         return node.leaf_output_value
 
+    @property
+    def n_classes_(self) -> int:
+        return self._n_classes
+
+    @property
+    def classes_(self) -> np.ndarray:
+        return self._classes
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> 'DecisionTreeClassifier':
+        n_samples, n_features = X.shape
+        self._n_features = n_features
+        self._classes = np.unique(y)
+        self._n_classes = self._classes.size
+
+        self.root = self._generate_tree(X, y, 0)
+        return self
+
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
         return accuracy_score(y, self.predict(X))
+
+
+class DecisionTreeRegressor(BaseDecisionTree):
+    def __init__(self, max_depth: int = float("inf"), min_samples_split: int = 2,
+                 min_impurity_split: float = 0.0):
+        super().__init__(max_depth, min_samples_split, min_impurity_split)
+
+    def _impurity_func(self, y_positive: np.ndarray, y_negative: np.ndarray) -> float:
+        return self._variance(y_positive) + self._variance(y_negative)
+
+    def _variance(self, y: np.ndarray) -> float:
+        if y.size == 0:
+            return 0
+        else:
+            return float(np.sum(np.square(y - np.mean(y))))
+
+    def _leaf_value_func(self, y: np.ndarray) -> float:
+        return float(y.mean(axis=0))
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> 'DecisionTreeRegressor':
+        n_samples, n_features = X.shape
+        self._n_features = n_features
+
+        self.root = self._generate_tree(X, y, 0)
+        return self
+
+    def _predict_value(self, x: np.ndarray) -> float:
+        node: 'DecisionTreeNode' = self.root
+
+        while node.leaf_output_value is None:
+            feature_value = x[node.feature_idx]
+            if node.is_discrete:
+                if feature_value == node.cut_off_point:
+                    node = node.left_child
+                else:
+                    node = node.right_child
+            else:
+                if feature_value <= node.cut_off_point:
+                    node = node.left_child
+                else:
+                    node = node.right_child
+
+        return node.leaf_output_value
+
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        return r2_score(y, self.predict(X))
