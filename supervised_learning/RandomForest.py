@@ -11,7 +11,9 @@ import abc
 from typing import List
 from supervised_learning.DecisionTree import BaseDecisionTree
 from supervised_learning import DecisionTreeClassifier
+from supervised_learning import DecisionTreeRegressor
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import r2_score
 
 
 class BaseRandomForest(object):
@@ -38,7 +40,7 @@ class BaseRandomForest(object):
     def _init_estimators(self) -> None:
         pass
 
-    def fit(self, X: np.ndarray, y: np.ndarray) -> 'BaseRandomForest':
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "BaseRandomForest":
         self._init_estimators()
         n_samples, self._n_features = X.shape
 
@@ -76,7 +78,7 @@ class BaseRandomForest(object):
 
 class RandomForestClassifier(BaseRandomForest):
     def __init__(self, n_estimators: int=100, max_depth: int=float("inf"), min_samples_split: int = 2,
-                 min_impurity_split: float=1e-7, max_features: int=None):
+                 min_impurity_split: float=0, max_features: int=None):
         super().__init__(n_estimators=n_estimators, max_depth=max_depth, min_samples_split=min_samples_split,
                          min_impurity_split=min_impurity_split, max_features=max_features)
         self._classes: np.ndarray = None
@@ -96,14 +98,34 @@ class RandomForestClassifier(BaseRandomForest):
                 DecisionTreeClassifier(max_depth=self.max_depth, min_samples_split=self.min_samples_split,
                                        min_impurity_split=self.min_impurity_split))
 
-    def fit(self, X: np.ndarray, y: np.ndarray):
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "RandomForestClassifier":
         if self.max_features is None:
             self.max_features = int(np.sqrt(X.shape[1]))
 
-        return super().fit(X, y)
+        super().fit(X, y)
+        return self
 
     def _get_ensemble_value(self, values: np.ndarray) -> int:
         return int(np.argmax(np.bincount(values)))
 
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
         return accuracy_score(y, self.predict(X))
+
+
+class RandomForestRegressor(BaseRandomForest):
+    def __init__(self, n_estimators: int=100, max_depth: int=float("inf"), min_samples_split: int = 2,
+                 min_impurity_split: float=0, max_features: int=None):
+        super().__init__(n_estimators=n_estimators, max_depth=max_depth, min_samples_split=min_samples_split,
+                         min_impurity_split=min_impurity_split, max_features=max_features)
+
+    def _init_estimators(self):
+        for _ in range(self.n_estimators):
+            self._estimators.append(
+                DecisionTreeRegressor(max_depth=self.max_depth, min_samples_split=self.min_samples_split,
+                                      min_impurity_split=self.min_impurity_split))
+
+    def _get_ensemble_value(self, values: np.ndarray) -> float:
+        return float(np.mean(values))
+
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        return r2_score(y, self.predict(X))
