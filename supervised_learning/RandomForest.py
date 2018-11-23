@@ -124,6 +124,13 @@ class RandomForestRegressor(BaseRandomForest):
                 DecisionTreeRegressor(max_depth=self.max_depth, min_samples_split=self.min_samples_split,
                                       min_impurity_split=self.min_impurity_split))
 
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "RandomForestRegressor":
+        if self.max_features is None:
+            self.max_features = int(X.shape[1])
+
+        super().fit(X, y)
+        return self
+
     def _get_ensemble_value(self, values: np.ndarray) -> float:
         return float(np.mean(values))
 
