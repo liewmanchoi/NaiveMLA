@@ -31,15 +31,11 @@ class BaseDecisionTree(object):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_impurity_split = min_impurity_split
-        self._n_classes: int = None
         self._n_features: int = None
-        self._classes: np.ndarray = None
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> 'BaseDecisionTree':
         n_samples, n_features = X.shape
         self._n_features = n_features
-        self._classes = np.unique(y)
-        self._n_classes = self._classes.size
 
         self.root = self._generate_tree(X, y, 0)
         return self
@@ -123,22 +119,16 @@ class BaseDecisionTree(object):
         pass
 
     @property
-    def n_classes_(self) -> int:
-        return self._n_classes
-
-    @property
     def n_features_(self) -> int:
         return self._n_features
-
-    @property
-    def classes_(self) -> np.ndarray:
-        return self._classes
 
 
 class DecisionTreeClassifier(BaseDecisionTree):
     def __init__(self, max_depth: int = float("inf"), min_samples_split: int = 2,
                  min_impurity_split: float = 1e-7):
         super().__init__(max_depth, min_samples_split, min_impurity_split)
+        self._n_classes: int = None
+        self._classes: np.ndarray = None
 
     # 计算gini_index
     def _impurity_func(self, y_positive: np.ndarray, y_negative: np.ndarray) -> float:
@@ -181,6 +171,23 @@ class DecisionTreeClassifier(BaseDecisionTree):
                     node = node.right_child
 
         return node.leaf_output_value
+
+    @property
+    def n_classes_(self) -> int:
+        return self._n_classes
+
+    @property
+    def classes_(self) -> np.ndarray:
+        return self._classes
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> 'DecisionTreeClassifier':
+        n_samples, n_features = X.shape
+        self._n_features = n_features
+        self._classes = np.unique(y)
+        self._n_classes = self._classes.size
+
+        self.root = self._generate_tree(X, y, 0)
+        return self
 
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
         return accuracy_score(y, self.predict(X))
