@@ -203,7 +203,7 @@ class DecisionTreeRegressor(BaseDecisionTree):
         if y.size == 0:
             return 0
         else:
-            return y.size * np.var(y)
+            return float(np.sum(np.square(y - np.mean(y))))
 
     def _leaf_value_func(self, y: np.ndarray) -> float:
         return float(y.mean(axis=0))

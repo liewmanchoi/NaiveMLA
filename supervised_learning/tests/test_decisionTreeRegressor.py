@@ -32,6 +32,3 @@ class TestDecisionTreeRegressor(TestCase):
         sk_reg.fit(X_train, y_train)
         print("Accuracy on training set: {:.3f}".format(my_reg.score(X_train, y_train)))
         print("Accuracy on training set: {:.3f}".format(sk_reg.score(X_train, y_train)))
-
-
-
