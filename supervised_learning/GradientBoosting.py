@@ -15,6 +15,18 @@ from supervised_learning import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 
 
+class MeanEstimator(object):
+    def __init__(self):
+        self.mean: float = None
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+        self.mean = float(np.mean(y))
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        y_pred = np.empty(shape=X.shape[0])
+        y_pred.fill(self.mean)
+        return y_pred
+
 class BaseGradientBoosting(object):
     def __init__(self, learning_rate: float, n_estimators: int, max_depth: int, min_samples_split,
                  min_impurity_split: float, max_features: int, early_stop: bool,
