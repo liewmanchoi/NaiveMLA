@@ -16,6 +16,7 @@ from sklearn.metrics import accuracy_score
 
 
 class MeanEstimator(object):
+    # for regression
     def __init__(self):
         self.mean: float = None
 
@@ -23,9 +24,31 @@ class MeanEstimator(object):
         self.mean = float(np.mean(y))
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        y_pred = np.empty(shape=X.shape[0])
+        y_pred = np.empty(shape=X.shape[0], dtype=np.float64)
         y_pred.fill(self.mean)
         return y_pred
+
+
+class LogOddsEstimator(object):
+    # for binary classification
+    def __init__(self):
+        self.prior: float = None
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+        pos = np.sum(y)
+        neg = y.size - pos
+
+        if neg == 0 or pos == 0:
+            raise ValueError('y contains non binary labels.')
+
+        # p = 1 / (1 + exp(-f(x)) -> f(x) = log(p / (1 - p))
+        self.prior = float(np.log(pos / neg))
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        y_pred = np.empty(shape=X.shape[0], dtype=np.float64)
+        y_pred.fill(self.prior)
+        return y_pred
+
 
 class BaseGradientBoosting(object):
     def __init__(self, learning_rate: float, n_estimators: int, max_depth: int, min_samples_split,
