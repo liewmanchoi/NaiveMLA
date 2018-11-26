@@ -9,6 +9,7 @@ from supervised_learning.RandomForest import RandomForestClassifier
 from sklearn.datasets import load_breast_cancer
 import sklearn.ensemble
 from sklearn.model_selection import train_test_split
+import numpy as np
 
 
 # __file__ = test_randomForestClassifier.py
@@ -17,7 +18,7 @@ class TestRandomForestClassifier(TestCase):
         cancer = load_breast_cancer()
         X_train, X_test, y_train, y_test = train_test_split(cancer.data, cancer.target, stratify=cancer.target)
 
-        my_tree = RandomForestClassifier(max_depth=5, n_estimators=10)
+        my_tree = RandomForestClassifier(max_depth=5, n_estimators=20, max_features=1)
         my_tree.fit(X_train, y_train)
         sk_tree = sklearn.ensemble.RandomForestClassifier(max_depth=5, n_estimators=10)
         sk_tree.fit(X_train, y_train)

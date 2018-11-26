@@ -24,11 +24,11 @@ class TestRandomForestRegressor(TestCase):
         print("Accuracy on training set: {:.3f}".format(sk_reg.score(X_train, y_train)))
 
     def test_boston(self):
-        my_reg = RandomForestRegressor(n_estimators=10, max_depth=5)
+        my_reg = RandomForestRegressor(n_estimators=30, max_depth=5, max_features=1)
         # sk_reg = sklearn.ensemble.RandomForestRegressor(n_estimators=10, max_depth=5)
         boston = load_boston()
         X_train, X_test, y_train, y_test = train_test_split(boston.data, boston.target)
         my_reg.fit(X_train, y_train)
         # sk_reg.fit(X_train, y_train)
-        # print("Accuracy on training set: {:.3f}".format(my_reg.score(X_train, y_train)))
+        print("Accuracy on training set: {:.3f}".format(my_reg.score(X_train, y_train)))
         # print("Accuracy on training set: {:.3f}".format(sk_reg.score(X_train, y_train)))
