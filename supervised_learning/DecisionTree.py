@@ -41,7 +41,7 @@ class BaseDecisionTree(object):
         n_samples, n_features = X.shape
         self._n_features = n_features
 
-        if self.max_features is None or self.max_features > self._n_features:
+        if self.max_features is None or self.max_features >= self._n_features:
             self.max_features = self._n_features
             X_subset = X
         else:
