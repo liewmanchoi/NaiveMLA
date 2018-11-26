@@ -121,7 +121,6 @@ class BaseGradientBoosting(object):
         self._n_features: int = None
         self._estimators: List['DecisionTreeRegressor'] = list()
         self.init_: None
-        self._in_bag_features: List[np.ndarray] = list()
 
     def _init_state(self) -> None:
         # init model & self._estimators
@@ -130,7 +129,7 @@ class BaseGradientBoosting(object):
         for _ in range(self.n_estimators):
             self._estimators.append(
                 DecisionTreeRegressor(max_depth=self.max_depth, min_samples_split=self.min_samples_split,
-                                      min_impurity_split=self.min_impurity_split)
+                                      min_impurity_split=self.min_impurity_split, max_features=self.max_features)
             )
 
     def _init_decision_function(self, X: np.ndarray) -> np.ndarray:
@@ -162,20 +161,11 @@ class BaseGradientBoosting(object):
 
         # 逐个拟合负梯度值
         for estimator in self._estimators:
-            # random feature selection
-            if self.max_features < self._n_features:
-                feature_idx = np.random.choice(np.arange(self._n_features), self.max_features, replace=False)
-            else:
-                feature_idx = np.arange(self._n_features)
-            self._in_bag_features.append(feature_idx)
-
             # 计算负梯度值
             residual = self.loss.negative_gradient(y_true=y, y_pred=f)
-
-            X_subset = X[:, feature_idx]
-            estimator.fit(X_subset, residual)
+            estimator.fit(X, residual)
             # 注意shrinkage机制
-            f += self.learning_rate * estimator.predict(X_subset)
+            f += self.learning_rate * estimator.predict(X)
 
         return self
 
@@ -184,9 +174,8 @@ class BaseGradientBoosting(object):
         # 回归器可以直接使用本函数，分类器还需要转换为概率和类别
         f = self._init_decision_function(X)
 
-        for idx, estimator in enumerate(self._estimators):
-            feature_idx = self._in_bag_features[idx]
-            f += self.learning_rate * estimator.predict(X[:, feature_idx])
+        for estimator in self._estimators:
+            f += self.learning_rate * estimator.predict(X)
 
         return f
 
