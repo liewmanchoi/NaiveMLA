@@ -16,7 +16,7 @@ class TestGradientBoostingRegressor(TestCase):
         boston = load_boston()
         X_train, X_test, y_train, y_test = train_test_split(boston.data, boston.target, random_state=1)
 
-        my_reg = GradientBoostingRegressor(max_depth=5)
+        my_reg = GradientBoostingRegressor(max_depth=3)
         sk_reg = sklearn.ensemble.GradientBoostingRegressor()
         my_reg.fit(X_train, y_train)
         sk_reg.fit(X_train, y_train)

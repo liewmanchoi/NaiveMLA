@@ -11,7 +11,7 @@ import numpy as np
 import math
 import abc
 from typing import List
-from supervised_learning import DecisionTreeRegressor
+from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import r2_score
 from scipy.special import expit
