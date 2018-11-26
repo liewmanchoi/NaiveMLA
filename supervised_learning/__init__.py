@@ -13,6 +13,8 @@ from .DecisionTree import DecisionTreeClassifier
 from .DecisionTree import DecisionTreeRegressor
 from .RandomForest import RandomForestClassifier
 from .RandomForest import RandomForestRegressor
+from .GradientBoosting import GradientBoostingClassifier
+from .GradientBoosting import GradientBoostingRegressor
 
 __all__ = ['KNN',
            'Ridge',
@@ -23,4 +25,6 @@ __all__ = ['KNN',
            'DecisionTreeClassifier',
            'RandomForestClassifier',
            'DecisionTreeRegressor',
-           'RandomForestRegressor']
+           'RandomForestRegressor',
+           'GradientBoostingClassifier',
+           'GradientBoostingRegressor']
