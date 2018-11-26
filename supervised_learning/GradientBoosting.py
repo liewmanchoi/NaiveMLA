@@ -13,6 +13,7 @@ import abc
 from typing import List
 from supervised_learning import DecisionTreeRegressor
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import r2_score
 from scipy.special import expit
 
 
@@ -206,3 +207,21 @@ class GradientBoostingClassifier(BaseGradientBoosting):
 
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
         return accuracy_score(y, self.predict(X))
+
+
+class GradientBoostingRegressor(BaseGradientBoosting):
+    def __init__(self, learning_rate: float =0.1, n_estimators: int =100,
+                 max_depth: int =3, min_samples_split: int =2, min_impurity_split: float =0.0,
+                 max_features: int = None):
+        super().__init__(LeastSquareError(), learning_rate, n_estimators, max_depth, min_samples_split,
+                         min_impurity_split, max_features)
+
+    def _check_max_features(self) -> None:
+        if self.max_features is None:
+            self.max_features = self._n_features
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return super().predict(X)
+
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        return r2_score(y, self.predict(X))
