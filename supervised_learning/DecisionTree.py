@@ -27,16 +27,30 @@ class DecisionTreeNode(object):
 
 
 class BaseDecisionTree(object):
-    def __init__(self, max_depth: int, min_samples_split: int, min_impurity_split: float):
+    def __init__(self, max_depth: int, min_samples_split: int, min_impurity_split: float, max_features:int):
         self.root: 'DecisionTreeNode' = None
         self.max_depth: int = max_depth
         self.min_samples_split: int = min_samples_split
         self.min_impurity_split: float = min_impurity_split
         self._n_features: int = None
+        self.max_features: int = max_features
+        self.feature_mask: np.ndarray = None
 
     @abc.abstractmethod
     def fit(self, X: np.ndarray, y: np.ndarray) -> 'BaseDecisionTree':
-        pass
+        n_samples, n_features = X.shape
+        self._n_features = n_features
+
+        if self.max_features is None:
+            self.max_features = self._n_features
+            X_subset = X
+        else:
+            # random feature selection
+            self.feature_mask = np.random.choice(np.arange(self.n_features_), self.max_features, replace=False)
+            X_subset = X[:, self.feature_mask]
+
+        self.root = self._generate_tree(X_subset, y, 0)
+        return self
 
     def _generate_tree(self, X: np.ndarray, y: np.ndarray, depth: int = 0) -> 'DecisionTreeNode':
         n_samples, n_features = X.shape
@@ -101,7 +115,11 @@ class BaseDecisionTree(object):
         return X_left, X_right, y_left, y_right
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        y_pred = np.array([self._predict_value(sample) for sample in X])
+        if self.max_features == self.n_features_:
+            X_subset = X
+        else:
+            X_subset = X[:, self.feature_mask]
+        y_pred = np.array([self._predict_value(sample) for sample in X_subset])
         return y_pred
 
     @abc.abstractmethod
@@ -123,8 +141,8 @@ class BaseDecisionTree(object):
 
 class DecisionTreeClassifier(BaseDecisionTree):
     def __init__(self, max_depth: int = float("inf"), min_samples_split: int = 2,
-                 min_impurity_split: float = 0.0):
-        super().__init__(max_depth, min_samples_split, min_impurity_split)
+                 min_impurity_split: float = 0.0, max_features: int = None):
+        super().__init__(max_depth, min_samples_split, min_impurity_split, max_features)
         self._n_classes: int = None
         self._classes: np.ndarray = None
 
@@ -179,12 +197,10 @@ class DecisionTreeClassifier(BaseDecisionTree):
         return self._classes
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> 'DecisionTreeClassifier':
-        n_samples, n_features = X.shape
-        self._n_features = n_features
         self._classes = np.unique(y)
         self._n_classes = self._classes.size
 
-        self.root = self._generate_tree(X, y, 0)
+        super().fit(X, y)
         return self
 
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
@@ -193,8 +209,8 @@ class DecisionTreeClassifier(BaseDecisionTree):
 
 class DecisionTreeRegressor(BaseDecisionTree):
     def __init__(self, max_depth: int = float("inf"), min_samples_split: int = 2,
-                 min_impurity_split: float = 0.0):
-        super().__init__(max_depth, min_samples_split, min_impurity_split)
+                 min_impurity_split: float = 0.0, max_features: int = None):
+        super().__init__(max_depth, min_samples_split, min_impurity_split, max_features)
 
     def _impurity_func(self, y_positive: np.ndarray, y_negative: np.ndarray) -> float:
         return self._variance(y_positive) + self._variance(y_negative)
@@ -209,10 +225,8 @@ class DecisionTreeRegressor(BaseDecisionTree):
         return float(y.mean(axis=0))
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> 'DecisionTreeRegressor':
-        n_samples, n_features = X.shape
-        self._n_features = n_features
+        super().fit(X, y)
 
-        self.root = self._generate_tree(X, y, 0)
         return self
 
     def _predict_value(self, x: np.ndarray) -> float:

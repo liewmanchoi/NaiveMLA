@@ -24,7 +24,7 @@ class TestDecisionTreeRegressor(TestCase):
         print("Accuracy on training set: {:.3f}".format(sk_reg.score(X_train, y_train)))
 
     def test_boston(self):
-        my_reg = DecisionTreeRegressor()
+        my_reg = DecisionTreeRegressor(max_features=9, max_depth=4)
         sk_reg = sklearn.tree.DecisionTreeRegressor()
         boston = load_boston()
         X_train, X_test, y_train, y_test = train_test_split(boston.data, boston.target)
