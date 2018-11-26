@@ -8,6 +8,7 @@
 
 import numpy as np
 import abc
+import math
 from typing import List
 from supervised_learning.DecisionTree import BaseDecisionTree
 from supervised_learning import DecisionTreeClassifier
@@ -26,7 +27,6 @@ class BaseRandomForest(object):
         self.max_features = max_features
         self._n_features: int = None
         self._estimators: List['BaseDecisionTree'] = list()
-        self._in_bag_features: List[np.ndarray] = list()
 
     @property
     def n_features_(self) -> int:
@@ -40,18 +40,21 @@ class BaseRandomForest(object):
     def _init_estimators(self) -> None:
         pass
 
+    @abc.abstractmethod
+    def _check_max_features(self) -> None:
+        # invoke after self._n_features is decided
+        pass
+
     def fit(self, X: np.ndarray, y: np.ndarray) -> "BaseRandomForest":
-        self._init_estimators()
         n_samples, self._n_features = X.shape
+        self._check_max_features()
+        self._init_estimators()
 
         for estimator in self.estimators_:
             bootstrap_idx = np.random.choice(np.arange(n_samples), n_samples, replace=True)
-            # random feature selection
-            feature_idx = np.random.choice(np.arange(self.n_features_), self.max_features, replace=False)
-            self._in_bag_features.append(feature_idx)
 
             # generate subset
-            X_subset = X[np.ix_(bootstrap_idx, feature_idx)]
+            X_subset = X[bootstrap_idx]
             y_subset = y[bootstrap_idx]
             # fit each estimator
             estimator.fit(X_subset, y_subset)
@@ -62,8 +65,7 @@ class BaseRandomForest(object):
         y_preds = np.empty(shape=(X.shape[0], self.n_estimators), dtype=np.int64)
 
         for idx, estimator in enumerate(self._estimators):
-            feature_idx = self._in_bag_features[idx]
-            y_preds[:, idx] = estimator.predict(X[:, feature_idx])
+            y_preds[:, idx] = estimator.predict(X)
 
         y_pred = np.empty(shape=X.shape[0])
         for idx, values in enumerate(y_preds):
@@ -96,14 +98,11 @@ class RandomForestClassifier(BaseRandomForest):
         for _ in range(self.n_estimators):
             self._estimators.append(
                 DecisionTreeClassifier(max_depth=self.max_depth, min_samples_split=self.min_samples_split,
-                                       min_impurity_split=self.min_impurity_split))
+                                       min_impurity_split=self.min_impurity_split, max_features=self.max_features))
 
-    def fit(self, X: np.ndarray, y: np.ndarray) -> "RandomForestClassifier":
+    def _check_max_features(self) -> None:
         if self.max_features is None:
-            self.max_features = int(np.sqrt(X.shape[1]))
-
-        super().fit(X, y)
-        return self
+            self.max_features = int(math.sqrt(self._n_features))
 
     def _get_ensemble_value(self, values: np.ndarray) -> int:
         return int(np.argmax(np.bincount(values)))
@@ -122,7 +121,7 @@ class RandomForestRegressor(BaseRandomForest):
         for _ in range(self.n_estimators):
             self._estimators.append(
                 DecisionTreeRegressor(max_depth=self.max_depth, min_samples_split=self.min_samples_split,
-                                      min_impurity_split=self.min_impurity_split))
+                                      min_impurity_split=self.min_impurity_split, max_features=self.max_features))
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "RandomForestRegressor":
         if self.max_features is None:
@@ -133,6 +132,10 @@ class RandomForestRegressor(BaseRandomForest):
 
     def _get_ensemble_value(self, values: np.ndarray) -> float:
         return float(np.mean(values))
+
+    def _check_max_features(self) -> None:
+        if self.max_features is None:
+            self.max_features = self._n_features
 
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
         return r2_score(y, self.predict(X))
