@@ -41,7 +41,7 @@ class BaseDecisionTree(object):
         n_samples, n_features = X.shape
         self._n_features = n_features
 
-        if self.max_features is None:
+        if self.max_features is None or self.max_features > self._n_features:
             self.max_features = self._n_features
             X_subset = X
         else:
@@ -89,6 +89,9 @@ class BaseDecisionTree(object):
                     best_feature_is_discrete = is_discrete
                     best_feature_idx = feature_idx
                     best_cut_off_feature = feature_value
+
+        if np.unique(X[:, best_feature_idx]).size == 1:
+            return DecisionTreeNode(leaf_output_value=self._leaf_value_func(y))
 
         if min_impurity < float("inf"):
             X_left, X_right, y_left, y_right = self._split_dataset(X, y, best_feature_idx,
