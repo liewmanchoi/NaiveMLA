@@ -14,15 +14,21 @@ class RBF(object):
     def __init__(self, gamma: float):
         self._gamma = gamma
 
-    def __call__(self, x1: np.ndarray, x2: np.ndarray) -> float:
-        return np.exp(-self._gamma * np.sum(np.square(x1 - x2)))
+    def __call__(self, X: np.ndarray, Y: np.ndarray) -> np.ndarray:
+        # shape: (X.shape[0], Y.shape[0])
+        Y = np.atleast_2d(Y)
+        kernel_matrix = np.empty(shape=(X.shape[0], Y.shape[0]))
+        for idx, y in enumerate(Y):
+            kernel_matrix[:, idx] = np.exp(-self._gamma * np.sum(np.square(X - y), axis=1))
+
+        return kernel_matrix
 
 
 class SVC(object):
     def __init__(self, C: float = 1.0, kernel: str = "rbf", gamma: float = None, tol: float = 1e-3, max_iter: int = -1):
         self._C: float = C
         self._kernel_name: str = kernel
-        self._kerner: Callable = None
+        self._kernel: Callable = None
         self._gamma: float = gamma
         self._tol: float = tol
         self._max_iter: int = max_iter
@@ -37,9 +43,20 @@ class SVC(object):
             if self._gamma is None:
                 self._gamma = 1 / self._n_features
 
-            self._kerner = RBF(gamma=self._gamma)
+            self._kernel = RBF(gamma=self._gamma)
         else:
             raise AttributeError("kernel must be RBF")
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "SVC":
+        pass
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        X = np.atleast_2d(X)
+        K_matrix = self._kernel(X, self._support_vectors)
+
+        # dual_coef[i] = alpha[i] * y[i]
+        y_pred = np.sign(np.dot(K_matrix, self._dual_coef) + self._intercept)
+        return y_pred
 
     # indices of support vectors
     @property
