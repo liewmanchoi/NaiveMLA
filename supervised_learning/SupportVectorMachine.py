@@ -48,7 +48,19 @@ class SVC(object):
             raise AttributeError("kernel must be RBF")
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "SVC":
-        pass
+        n_samples, self._n_features = X.shape
+        self._init_kernel()
+
+        self._optimize_by_SMO(X, y)
+        return self
+
+    def _optimize_by_SMO(self, X: np.ndarray, y: np.ndarray):
+        # min 1/2 alpha.T * Q * alpha - np.sum(alpha)
+        # Q[i][j] = y[i]*y[j]*K[i][j]
+        K_matrix = self._kernel(X, X)
+
+        alpha = np.empty(shape=X.shape[0])
+
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         X = np.atleast_2d(X)
