@@ -7,12 +7,22 @@
 # __file__ = SupportVectorMachine.py
 
 import numpy as np
+from typing import Callable
+
+
+class RBF(object):
+    def __init__(self, gamma: float):
+        self._gamma = gamma
+
+    def __call__(self, x1: np.ndarray, x2: np.ndarray) -> float:
+        return np.exp(-self._gamma * np.sum(np.square(x1 - x2)))
 
 
 class SVC(object):
     def __init__(self, C: float = 1.0, kernel: str = "rbf", gamma: float = None, tol: float = 1e-3, max_iter: int = -1):
         self._C: float = C
-        self._kernel: str = kernel
+        self._kernel_name: str = kernel
+        self._kerner: Callable = None
         self._gamma: float = gamma
         self._tol: float = tol
         self._max_iter: int = max_iter
@@ -20,6 +30,16 @@ class SVC(object):
         self._support_vectors: np.ndarray = None  # support vectors
         self._dual_coef: np.ndarray = None  # coefficients of the support vectors in decision function
         self._intercept: float = None  # constant in decision function
+        self._n_features: int = None  # number of features
+
+    def _init_kernel(self) -> None:
+        if self._kernel_name == "rbf":
+            if self._gamma is None:
+                self._gamma = 1 / self._n_features
+
+            self._kerner = RBF(gamma=self._gamma)
+        else:
+            raise AttributeError("kernel must be RBF")
 
     # indices of support vectors
     @property
