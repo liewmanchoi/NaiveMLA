@@ -8,6 +8,7 @@
 
 import numpy as np
 from typing import Callable
+from sklearn.metrics import accuracy_score
 
 
 class RBF(object):
@@ -217,6 +218,9 @@ class SVC(object):
         # dual_coef[i] = alpha[i] * y[i]
         y_pred = np.sign(np.dot(K_matrix, self._dual_coef) + self._intercept)
         return y_pred
+
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        return accuracy_score(y, self.predict(X))
 
     # indices of support vectors
     @property
