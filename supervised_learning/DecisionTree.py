@@ -27,7 +27,7 @@ class DecisionTreeNode(object):
 
 
 class BaseDecisionTree(object):
-    def __init__(self, max_depth: int, min_samples_split: int, min_impurity_split: float, max_features:int):
+    def __init__(self, max_depth: int, min_samples_split: int, min_impurity_split: float, max_features: int):
         self.root: 'DecisionTreeNode' = None
         self.max_depth: int = max_depth
         self.min_samples_split: int = min_samples_split
@@ -43,13 +43,8 @@ class BaseDecisionTree(object):
 
         if self.max_features is None or self.max_features >= self._n_features:
             self.max_features = self._n_features
-            X_subset = X
-        else:
-            # random feature selection
-            self.feature_mask = np.random.choice(np.arange(self.n_features_), self.max_features, replace=False)
-            X_subset = X[:, self.feature_mask]
 
-        self.root = self._generate_tree(X_subset, y, 0)
+        self.root = self._generate_tree(X, y, 0)
         return self
 
     def _generate_tree(self, X: np.ndarray, y: np.ndarray, depth: int = 0) -> 'DecisionTreeNode':
@@ -63,9 +58,13 @@ class BaseDecisionTree(object):
         best_feature_idx: int = None
         best_cut_off_feature = None
 
+        if self.max_features == self._n_features:
+            candidate_features: np.ndarray = np.arange(n_features)
+        else:
+            candidate_features = np.random.choice(self._n_features, self.max_features, replace=False)
         # 如果可分样本数或者深度满足要求，则继续下一个步骤
         # 双重循环，选择最优属性和最优切分点
-        for feature_idx in range(n_features):
+        for feature_idx in candidate_features:
             feature_array = X[:, feature_idx]
             is_discrete = is_discrete_target(feature_array)
             unique_feauture_array = np.unique(feature_array)
@@ -118,11 +117,8 @@ class BaseDecisionTree(object):
         return X_left, X_right, y_left, y_right
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        if self.max_features == self.n_features_:
-            X_subset = X
-        else:
-            X_subset = X[:, self.feature_mask]
-        y_pred = np.array([self._predict_value(sample) for sample in X_subset])
+        X = np.atleast_2d(X)
+        y_pred = np.array([self._predict_value(sample) for sample in X])
         return y_pred
 
     @abc.abstractmethod
@@ -218,7 +214,8 @@ class DecisionTreeRegressor(BaseDecisionTree):
     def _impurity_func(self, y_positive: np.ndarray, y_negative: np.ndarray) -> float:
         return self._variance(y_positive) + self._variance(y_negative)
 
-    def _variance(self, y: np.ndarray) -> float:
+    @staticmethod
+    def _variance(y: np.ndarray) -> float:
         if y.size == 0:
             return 0
         else:
