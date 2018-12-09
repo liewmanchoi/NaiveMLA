@@ -7,5 +7,7 @@
 # __file__ = __init__.py.py
 
 from unsupervised_learning.KMeans import KMeans
+from unsupervised_learning.DBSCAN import DBSCAN
 
-__all__ = ["KMeans"]
+__all__ = ["KMeans",
+           "DBSCAN"]
