@@ -42,14 +42,14 @@ class KMeans(object):
         return self
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        labels = np.argmin(self.transform(X), axis=1)
+        labels = np.argmin(self._update_distance(X), axis=1)
         return labels
 
     def fit_predict(self, X: np.ndarray, y: np.ndarray = None) -> np.ndarray:
         self.fit(X)
         return self._labels
 
-    def transform(self, X: np.ndarray) -> np.ndarray:
+    def _update_distance(self, X: np.ndarray) -> np.ndarray:
         distance_to_centers = np.ndarray(shape=(X.shape[0], self._n_clusters))
         for idx, cluster_center in enumerate(self._cluster_centers):
             distance_array = np.sum(np.square(X - cluster_center), axis=1)
@@ -58,7 +58,7 @@ class KMeans(object):
         return distance_to_centers
 
     def _get_labels(self, X: np.ndarray) -> None:
-        self._labels = np.argmin(self.transform(X), axis=1)
+        self._labels = np.argmin(self._update_distance(X), axis=1)
 
     def _update_cluster_centers(self, X: np.ndarray) -> None:
         for idx in range(self._n_clusters):
