@@ -43,12 +43,13 @@ class DBSCAN(object):
 
         unvisited_samples_set = set(range(n_samples))
         core_samples_set = set(self._core_sample_indices)
-        label = 0
+        label: int = 0
 
         while len(core_samples_set) != 0:
             sample_to_visit = core_samples_set.pop()
             queue = deque()
             unvisited_samples_set.remove(sample_to_visit)
+            queue.append(sample_to_visit)
             cluster = set()
 
             while len(queue) != 0:
@@ -63,7 +64,7 @@ class DBSCAN(object):
                     cluster.update(samples)
 
             core_samples_set.difference_update(cluster)
-            self._labels[cluster] = label
+            self._labels[list(cluster)] = label
             label += 1
 
         return self
