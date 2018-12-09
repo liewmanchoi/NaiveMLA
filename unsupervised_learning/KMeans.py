@@ -25,7 +25,8 @@ class KMeans(object):
         return self._labels
 
     def fit(self, X: np.ndarray, y: np.ndarray = None) -> "KMeans":
-        self._cluster_centers = np.random.choice(X, self._n_clusters, replace=False)
+        mask = np.random.choice(X.shape[0], self._n_clusters, replace=False)
+        self._cluster_centers = X[mask]
 
         iters = 0
         while iters < self._max_iter:
@@ -53,7 +54,7 @@ class KMeans(object):
         distance_to_centers = np.ndarray(shape=(X.shape[0], self._n_clusters))
         for idx, cluster_center in enumerate(self._cluster_centers):
             distance_array = np.sum(np.square(X - cluster_center), axis=1)
-            distance_to_centers[idx] = distance_array
+            distance_to_centers[:, idx] = distance_array
 
         return distance_to_centers
 
