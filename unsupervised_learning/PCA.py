@@ -37,7 +37,7 @@ class PCA(object):
         X_transformed = np.dot(X, self._components.T)
         return X_transformed
 
-    def fit_transfom(self, X: np.ndarray) -> np.ndarray:
+    def fit_transform(self, X: np.ndarray) -> np.ndarray:
         X_transformed = self.fit(X).transform(X)
         return X_transformed
 
