@@ -8,6 +8,8 @@
 
 from unsupervised_learning.KMeans import KMeans
 from unsupervised_learning.DBSCAN import DBSCAN
+from unsupervised_learning.PCA import PCA
 
 __all__ = ["KMeans",
-           "DBSCAN"]
+           "DBSCAN",
+           "PCA"]
