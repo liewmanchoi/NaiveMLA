@@ -8,7 +8,7 @@ from unittest import TestCase
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import make_regression, load_boston
 import sklearn.ensemble
-from supervised_learning.GradientBoosting import GradientBoostingRegressor
+from supervised_learning.gradientboosting import GradientBoostingRegressor
 
 # __file__ = test_gradientBoostingRegressor.py
 class TestGradientBoostingRegressor(TestCase):

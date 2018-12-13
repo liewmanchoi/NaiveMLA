@@ -4,7 +4,7 @@
 # __email__ = "liewmanchoi@gmail.com"
 # __status__ = "experiment"
 # __time__ = 2018/11/12 9:46
-# __file__ = NaiveBayes.py
+# __file__ = naivebayes.py
 
 import numpy as np
 from sklearn.metrics import accuracy_score

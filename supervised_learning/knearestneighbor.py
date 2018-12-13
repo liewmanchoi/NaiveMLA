@@ -4,7 +4,7 @@
 # __email__ = "liewmanchoi@gmail.com"
 # __status__ = "experiment"
 # __time__ = 2018/11/8 11:16
-# __file__ = KNearestNeighbor.py
+# __file__ = knearestneighbor.py
 
 
 import numpy as np

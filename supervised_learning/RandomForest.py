@@ -10,7 +10,7 @@ import numpy as np
 import abc
 import math
 from typing import List
-from supervised_learning.DecisionTree import BaseDecisionTree
+from supervised_learning.decisiontree import BaseDecisionTree
 from supervised_learning import DecisionTreeClassifier
 from supervised_learning import DecisionTreeRegressor
 from sklearn.metrics import accuracy_score

@@ -6,9 +6,9 @@
 # __time__ = 2018/12/9 9:54
 # __file__ = __init__.py.py
 
-from unsupervised_learning.KMeans import KMeans
-from unsupervised_learning.DBSCAN import DBSCAN
-from unsupervised_learning.PCA import PCA
+from unsupervised_learning.kmeans import KMeans
+from unsupervised_learning.dbscan import DBSCAN
+from unsupervised_learning.pca import PCA
 
 __all__ = ["KMeans",
            "DBSCAN",

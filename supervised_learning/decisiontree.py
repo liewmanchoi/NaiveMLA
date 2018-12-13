@@ -4,7 +4,7 @@
 # __email__ = "liewmanchoi@gmail.com"
 # __status__ = "experiment"
 # __time__ = 2018/11/17 10:18
-# __file__ = DecisionTree.py
+# __file__ = decisiontree.py
 
 import numpy as np
 import abc

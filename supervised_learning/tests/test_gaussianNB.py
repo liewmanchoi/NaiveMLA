@@ -5,7 +5,7 @@
 # __status__ = "experiment"
 # __time__ = 2018/11/12 14:48
 from unittest import TestCase
-from supervised_learning.NaiveBayes import GaussianNB
+from supervised_learning.naivebayes import GaussianNB
 import numpy as np
 from sklearn import datasets
 

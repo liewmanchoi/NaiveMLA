@@ -6,7 +6,7 @@
 # __time__ = 2018/12/2 16:21
 from unittest import TestCase
 import numpy as np
-from supervised_learning.SupportVectorMachine import RBF
+from supervised_learning.supportvectormachine import RBF
 
 
 # __file__ = test_RBF.py

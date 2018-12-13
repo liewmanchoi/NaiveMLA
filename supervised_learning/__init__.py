@@ -6,15 +6,15 @@
 # __time__ = 2018/11/8 11:15
 # __file__ = __init__.py.py
 
-from .KNearestNeighbor import KNN
+from .knearestneighbor import KNN
 from .linear_model import Ridge, Lasso, ElasticNet, LogisticRegression
-from .NaiveBayes import GaussianNB
-from .DecisionTree import DecisionTreeClassifier
-from .DecisionTree import DecisionTreeRegressor
+from .naivebayes import GaussianNB
+from .decisiontree import DecisionTreeClassifier
+from .decisiontree import DecisionTreeRegressor
 from .RandomForest import RandomForestClassifier
 from .RandomForest import RandomForestRegressor
-from .GradientBoosting import GradientBoostingClassifier
-from .GradientBoosting import GradientBoostingRegressor
+from .gradientboosting import GradientBoostingClassifier
+from .gradientboosting import GradientBoostingRegressor
 
 __all__ = ['KNN',
            'Ridge',

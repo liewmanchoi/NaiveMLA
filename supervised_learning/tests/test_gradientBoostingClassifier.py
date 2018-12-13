@@ -8,7 +8,7 @@ from unittest import TestCase
 import sklearn.ensemble
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_breast_cancer
-from supervised_learning.GradientBoosting import GradientBoostingClassifier
+from supervised_learning.gradientboosting import GradientBoostingClassifier
 
 
 # __file__ = test_gradientBoostingClassifier.py

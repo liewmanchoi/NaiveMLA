@@ -4,7 +4,7 @@
 # __email__ = "liewmanchoi@gmail.com"
 # __status__ = "experiment"
 # __time__ = 2018/12/9 13:56
-# __file__ = DBSCAN.py
+# __file__ = dbscan.py
 
 import numpy as np
 from typing import List
