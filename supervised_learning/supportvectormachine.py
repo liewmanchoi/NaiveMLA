@@ -4,7 +4,7 @@
 # __email__ = "liewmanchoi@gmail.com"
 # __status__ = "experiment"
 # __time__ = 2018/12/1 20:44
-# __file__ = SupportVectorMachine.py
+# __file__ = supportvectormachine.py
 
 import numpy as np
 from typing import Callable

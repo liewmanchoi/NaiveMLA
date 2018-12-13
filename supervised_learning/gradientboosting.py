@@ -4,7 +4,7 @@
 # __email__ = "liewmanchoi@gmail.com"
 # __status__ = "experiment"
 # __time__ = 2018/11/22 16:47
-# __file__ = GradientBoosting.py
+# __file__ = gradientboosting.py
 
 
 import numpy as np
