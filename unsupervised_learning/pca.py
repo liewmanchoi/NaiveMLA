@@ -4,7 +4,7 @@
 # __email__ = "liewmanchoi@gmail.com"
 # __status__ = "experiment"
 # __time__ = 2018/12/9 18:12
-# __file__ = PCA.py
+# __file__ = pca.py
 
 import numpy as np
 

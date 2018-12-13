@@ -4,7 +4,7 @@
 # __email__ = "liewmanchoi@gmail.com"
 # __status__ = "experiment"
 # __time__ = 2018/12/9 10:05
-# __file__ = KMeans.py
+# __file__ = kmeans.py
 
 import numpy as np
 
