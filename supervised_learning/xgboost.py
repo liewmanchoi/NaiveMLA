@@ -220,9 +220,53 @@ class XGBDecisionTreeRegressor(object):
 
 
 class BaseXGBoost(object):
-    def __init__(self, loss: 'LossFunction', learning_rate: float, n_estimators: int, gamma: float, reg_lambda: float):
+    def __init__(self, loss: 'LossFunction', max_depth: int, learning_rate: float, n_estimators: int, gamma: float,
+                 reg_lambda: float):
         self._loss: 'LossFunction' = loss
+        self._max_depth: int = max_depth
         self._learning_rate: float = learning_rate
         self._n_estimators: int = n_estimators
         self._estimators: List['XGBDecisionTreeRegressor'] = list()
+        self._gamma: float = gamma
+        self._reg_lambda: float = reg_lambda
         self._init = None
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> 'BaseXGBoost':
+        # init model & self._estimators
+        self._init_state()
+        self._init.fit(X, y)
+        # 赋予初值
+        f = self._init_decision_function(X)
+        # 每个回归器使用牛顿法拟合
+        for estimator in self._estimators:
+            # 计算损失函数的一阶偏导（梯度）和二阶偏导
+            self._loss.compute(y_true=y, y_pred=f)
+            estimator.fit(X, gradient=self._loss.gradient, hess=self._loss.hess)
+            # 注意shrinkage机制
+            f += self._learning_rate * estimator.predict(X)
+
+        return self
+
+    @abc.abstractmethod
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        # 回归器可以直接使用本函数，分类器还需要转换为概率和类别
+        f = self._init_decision_function(X)
+
+        for estimator in self._estimators:
+            f += self._learning_rate * estimator.predict(X)
+
+        return f
+
+    def _init_state(self) -> None:
+        self._init = self._loss.init_estimator()
+        for _ in range(self._n_estimators):
+            self._estimators.append(XGBDecisionTreeRegressor(max_depth=self._max_depth, gamma=self._gamma,
+                                                             reg_lambda=self._reg_lambda))
+
+    def _init_decision_function(self, X: np.ndarray) -> np.ndarray:
+        score = self._init.predict(X).astype(np.float64)
+        return score
+
+    @abc.abstractmethod
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        pass
