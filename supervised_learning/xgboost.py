@@ -73,6 +73,12 @@ class XGBDecisionTreeRegressor(object):
         self._root = self._build_tree(X, gradient, hess)
         return self
 
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        X = np.atleast_2d(X)
+        y_pred = np.array([self._predict_value(sample) for sample in X])
+
+        return y_pred
+
     def _build_tree(self, X: np.ndarray, gradient: np.ndarray, hess: np.ndarray) -> 'DecisionTreeNode':
         depth: int = 0
         root: 'DecisionTreeNode' = DecisionTreeNode(depth=depth)
@@ -133,10 +139,11 @@ class XGBDecisionTreeRegressor(object):
                 node.left_child = left_child
                 node.right_child = right_child
 
-                nodes_stack.append(left_child)
-                index_stack.append(post_left_index)
                 nodes_stack.append(right_child)
                 index_stack.append(post_right_index)
+                nodes_stack.append(left_child)
+                index_stack.append(post_left_index)
+
             else:
                 node.leaf_output_value = self._leaf_output(index, gradient, hess)
 
@@ -164,3 +171,21 @@ class XGBDecisionTreeRegressor(object):
         gain = (post_split_loss - pre_split_loss) / 2
 
         return gain
+
+    def _predict_value(self, x: np.ndarray):
+        node = self._root
+
+        while node.leaf_output_value is None:
+            feature_value = x[node.feature_idx]
+            if node.is_discrete:
+                if feature_value == node.cut_off_point:
+                    node = node.left_child
+                else:
+                    node = node.right_child
+            else:
+                if feature_value <= node.cut_off_point:
+                    node = node.left_child
+                else:
+                    node = node.right_child
+
+        return node.leaf_output_value
