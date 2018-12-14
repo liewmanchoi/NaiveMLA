@@ -11,9 +11,9 @@ import abc
 import math
 from typing import List
 from utils.data import is_discrete_target
+from supervised_learning.GradientBoosting import MeanEstimator
 from supervised_learning.GradientBoosting import LogOddsEstimator
-from supervised_learning.GradientBoosting import LeastSquareError
-from supervised_learning.GradientBoosting import BinomialDeviance
+from scipy.special import expit
 
 
 class DecisionTreeNode(object):
@@ -41,8 +41,7 @@ class LossFunction(object):
         pass
 
     @abc.abstractmethod
-    def __call__(self, y_true, y_pred):
-        # compute the loss
+    def compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> None:
         pass
 
     @property
@@ -54,6 +53,34 @@ class LossFunction(object):
     def hess(self) -> np.ndarray:
         # 计算二阶偏导数
         return self._hess
+
+
+class LeastSquareError(LossFunction):
+    def init_estimator(self):
+        return MeanEstimator()
+
+    def compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> None:
+        self._gradient = y_pred - y_true
+        self._hess = np.ones(shape=len(y_true))
+
+
+class BinomialDeviance(LossFunction):
+    def init_estimator(self):
+        return LogOddsEstimator()
+
+    # L(y_true, y_pred) = y_true * log(1 + exp(-1 * y_pred)) + (1 - y_true) * log(1 + exp(y_pred))
+    # y_true - {0, 1}
+    # P(y=1 | x) = 1 / (1 + exp(-y_pred)) = expit(y_pred)
+    def compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> None:
+        # dL / df(x) = 1 / (1 + exp(f(x)) - y_true
+        # d^2 L / d^2 f(x) = -1 / ((1 + exp(f(x))(1 + exp(-f(x)))
+        self._gradient = expit(-y_pred) - y_true
+        self._hess = - expit(y_pred) * expit(-y_pred)
+
+    @staticmethod
+    def output_to_proba(y_pred: np.ndarray) -> np.ndarray:
+        proba = expit(y_pred)
+        return proba
 
 
 class XGBDecisionTreeRegressor(object):
@@ -165,8 +192,9 @@ class XGBDecisionTreeRegressor(object):
         gradient = gradient[index]
         hess = hess[index]
 
-        post_split_loss = math.sqrt(left_gradient.sum()) / (left_hess.sum() + self._reg_lambda) + \
-                          math.sqrt(right_gradient.sum()) / (right_hess.sum() + self._reg_lambda)
+        post_split_loss = \
+            math.sqrt(left_gradient.sum()) / (left_hess.sum() + self._reg_lambda) + \
+            math.sqrt(right_gradient.sum()) / (right_hess.sum() + self._reg_lambda)
         pre_split_loss = math.sqrt(gradient.sum()) / (hess.sum() + self._reg_lambda)
         gain = (post_split_loss - pre_split_loss) / 2
 
@@ -189,3 +217,12 @@ class XGBDecisionTreeRegressor(object):
                     node = node.right_child
 
         return node.leaf_output_value
+
+
+class BaseXGBoost(object):
+    def __init__(self, loss: 'LossFunction', learning_rate: float, n_estimators: int, gamma: float, reg_lambda: float):
+        self._loss: 'LossFunction' = loss
+        self._learning_rate: float = learning_rate
+        self._n_estimators: int = n_estimators
+        self._estimators: List['XGBDecisionTreeRegressor'] = list()
+        self._init = None
