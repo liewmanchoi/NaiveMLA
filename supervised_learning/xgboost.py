@@ -75,7 +75,7 @@ class BinomialDeviance(LossFunction):
     # P(y=1 | x) = 1 / (1 + exp(-y_pred)) = expit(y_pred)
     def compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> None:
         # dL / df(x) = 1 / (1 + exp(-f(x)) - y_true = expit(y_pred) - y_true
-        # d^2 L / d^2 f(x) = 1 / ((1 + exp(f(x))(1 + exp(-f(x))) = exp(-y_pred) * expti(-y_pred)
+        # d^2 L / d^2 f(x) = 1 / ((1 + exp(f(x))(1 + exp(-f(x))) = expit(-y_pred) * expit(y_pred)
         self._gradient = expit(y_pred) - y_true
         self._hess = expit(y_pred) * expit(-y_pred)
 
