@@ -15,6 +15,7 @@ from supervised_learning.GradientBoosting import MeanEstimator
 from supervised_learning.GradientBoosting import LogOddsEstimator
 from scipy.special import expit
 from sklearn.metrics import r2_score
+from sklearn.metrics import accuracy_score
 
 
 class DecisionTreeNode(object):
@@ -284,3 +285,22 @@ class XGBRegressor(BaseXGBoost):
 
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
         return r2_score(y, self.predict(X))
+
+
+class XGBClassifier(BaseXGBoost):
+    def __init__(self, max_depth: int = 3, learning_rate: float = 0.1, n_estimators: int = 100, gamma: float = 0,
+                 reg_lambda: float = 1):
+        super().__init__(loss=BinomialDeviance(), max_depth=max_depth, learning_rate=learning_rate,
+                         n_estimators=n_estimators, gamma=gamma, reg_lambda=reg_lambda)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        f = super().predict(X)
+        proba = np.empty(shape=(X.shape[0], 2))
+        proba[:, 1] = BinomialDeviance.output_to_proba(f)
+        proba[:, 0] = 1 - proba[:, 1]
+        y_pred = np.argmax(proba, axis=1)
+
+        return y_pred
+
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        return accuracy_score(y, self.predict(X))
