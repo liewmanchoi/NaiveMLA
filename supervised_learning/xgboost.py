@@ -146,7 +146,7 @@ class XGBDecisionTreeRegressor(object):
                     left_index = index[mask]
                     right_index = index[~mask]
 
-                    if len(left_index) == 1 or len(right_index) == 1:
+                    if len(left_index) == 0 or len(right_index) == 0:
                         continue
 
                     gain = self._gain(index, left_index, right_index, gradient, hess)
