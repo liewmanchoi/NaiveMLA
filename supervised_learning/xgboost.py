@@ -11,8 +11,8 @@ import abc
 import math
 from typing import List
 from utils.data import is_discrete_target
-from supervised_learning.GradientBoosting import MeanEstimator
-from supervised_learning.GradientBoosting import LogOddsEstimator
+from supervised_learning.gradientboosting import MeanEstimator
+from supervised_learning.gradientboosting import LogOddsEstimator
 from scipy.special import expit
 from sklearn.metrics import r2_score
 from sklearn.metrics import accuracy_score
@@ -151,7 +151,7 @@ class XGBDecisionTreeRegressor(object):
                     if len(left_index) == 0 or len(right_index) == 0:
                         continue
 
-                    gain = self._gain(index, left_index, right_index, gradient, hess)
+                    gain = self._gain(left_index, right_index, gradient, hess)
                     if gain > max_gain:
                         max_gain = gain
                         best_feature_idx = feature_idx
@@ -187,7 +187,7 @@ class XGBDecisionTreeRegressor(object):
 
         return weight
 
-    def _gain(self, index: np.ndarray, left_index: np.ndarray, right_index: np.ndarray,
+    def _gain(self, left_index: np.ndarray, right_index: np.ndarray,
               gradient: np.ndarray, hess: np.ndarray) -> float:
         left_gradient_sum = gradient[left_index].sum()
         left_hess_sum = hess[left_index].sum()
