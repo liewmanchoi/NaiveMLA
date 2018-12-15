@@ -14,6 +14,7 @@ from utils.data import is_discrete_target
 from supervised_learning.GradientBoosting import MeanEstimator
 from supervised_learning.GradientBoosting import LogOddsEstimator
 from scipy.special import expit
+from sklearn.metrics import r2_score
 
 
 class DecisionTreeNode(object):
@@ -270,3 +271,16 @@ class BaseXGBoost(object):
     @abc.abstractmethod
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
         pass
+
+
+class XGBRegressor(BaseXGBoost):
+    def __init__(self, max_depth: int = 3, learning_rate: float = 0.1, n_estimators: int = 100, gamma: float = 0,
+                 reg_lambda: float = 1):
+        super().__init__(loss=LeastSquareError(), max_depth=max_depth, learning_rate=learning_rate,
+                         n_estimators=n_estimators, gamma=gamma, reg_lambda=reg_lambda)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return super().predict(X)
+
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        return r2_score(y, self.predict(X))
