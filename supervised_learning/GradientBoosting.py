@@ -99,7 +99,7 @@ class BinomialDeviance(LossFunction):
                              np.multiply(1 - y_true, np.logaddexp(0.0, y_pred))))
 
     def negative_gradient(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-        # -dL/dy_pred = y_true - 1 / (1 + exp(-f(x)) = y_true - exp(y_pred)
+        # -dL/dy_pred = y_true - 1 / (1 + exp(-f(x)) = y_true - expit(y_pred)
         # expit(x) = 1 / (1 + exp(-x)
         return y_true - expit(y_pred)
 
