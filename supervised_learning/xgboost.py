@@ -74,10 +74,10 @@ class BinomialDeviance(LossFunction):
     # y_true - {0, 1}
     # P(y=1 | x) = 1 / (1 + exp(-y_pred)) = expit(y_pred)
     def compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> None:
-        # dL / df(x) = 1 / (1 + exp(f(x)) - y_true
-        # d^2 L / d^2 f(x) = -1 / ((1 + exp(f(x))(1 + exp(-f(x)))
-        self._gradient = expit(-y_pred) - y_true
-        self._hess = - expit(y_pred) * expit(-y_pred)
+        # dL / df(x) = 1 / (1 + exp(-f(x)) - y_true = expit(y_pred) - y_true
+        # d^2 L / d^2 f(x) = 1 / ((1 + exp(f(x))(1 + exp(-f(x))) = exp(-y_pred) * expti(-y_pred)
+        self._gradient = expit(y_pred) - y_true
+        self._hess = expit(y_pred) * expit(-y_pred)
 
     @staticmethod
     def output_to_proba(y_pred: np.ndarray) -> np.ndarray:
@@ -119,8 +119,9 @@ class XGBDecisionTreeRegressor(object):
             node = nodes_stack.pop()
             index = index_stack.pop()
 
-            if node.depth >= self._max_depth:
+            if node.depth == self._max_depth:
                 node.leaf_output_value = self._leaf_output(index, gradient, hess)
+                continue
 
             max_gain: float = -float('inf')
             best_feature_idx: int = None
@@ -136,6 +137,7 @@ class XGBDecisionTreeRegressor(object):
 
                 if len(unique_features) == 1:
                     node.leaf_output_value = self._leaf_output(index, gradient, hess)
+                    continue
 
                 for feature in unique_features:
                     if is_discrete:
@@ -179,25 +181,25 @@ class XGBDecisionTreeRegressor(object):
         return root
 
     def _leaf_output(self, index: np.ndarray, gradient: np.ndarray, hess: np.ndarray) -> float:
-        gradient: np.ndarray = gradient[index]
-        hess: np.ndarray = hess[index]
-        weight: float = - gradient.sum() / (hess.sum() + self._reg_lambda)
+        g: np.ndarray = gradient[index]
+        h: np.ndarray = hess[index]
+        weight: float = - g.sum() / (h.sum() + self._reg_lambda)
 
         return weight
 
     def _gain(self, index: np.ndarray, left_index: np.ndarray, right_index: np.ndarray,
               gradient: np.ndarray, hess: np.ndarray) -> float:
-        left_gradient = gradient[left_index]
-        left_hess = hess[left_index]
-        right_gradient = gradient[right_index]
-        right_hess = hess[right_index]
-        gradient = gradient[index]
-        hess = hess[index]
+        left_gradient_sum = gradient[left_index].sum()
+        left_hess_sum = hess[left_index].sum()
+        right_gradient_sum = gradient[right_index].sum()
+        right_hess_sum = hess[right_index].sum()
+        gradient_sum = left_gradient_sum + right_gradient_sum
+        hess_sum = left_hess_sum + right_hess_sum
 
         post_split_loss = \
-            math.sqrt(left_gradient.sum()) / (left_hess.sum() + self._reg_lambda) + \
-            math.sqrt(right_gradient.sum()) / (right_hess.sum() + self._reg_lambda)
-        pre_split_loss = math.sqrt(gradient.sum()) / (hess.sum() + self._reg_lambda)
+            math.pow(left_gradient_sum, 2) / (left_hess_sum + self._reg_lambda) + \
+            math.pow(right_gradient_sum, 2) / (right_hess_sum + self._reg_lambda)
+        pre_split_loss = math.pow(gradient_sum, 2) / (hess_sum + self._reg_lambda)
         gain = (post_split_loss - pre_split_loss) / 2
 
         return gain
