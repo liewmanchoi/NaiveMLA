@@ -17,8 +17,8 @@ class TestGradientBoostingClassifier(TestCase):
         cancer = load_breast_cancer()
         X_train, X_test, y_train, y_test = train_test_split(cancer.data, cancer.target, stratify=cancer.target,
                                                             random_state=0)
-        my_clf = GradientBoostingClassifier(n_estimators=3, learning_rate=0.15)
-        sk_clf = sklearn.ensemble.GradientBoostingClassifier(n_estimators=3)
+        my_clf = GradientBoostingClassifier(n_estimators=10, learning_rate=0.15)
+        sk_clf = sklearn.ensemble.GradientBoostingClassifier(n_estimators=30)
         my_clf.fit(X_train, y_train)
         sk_clf.fit(X_train, y_train)
         print("Accuracy on training set: {:.3f}".format(my_clf.score(X_train, y_train)))
